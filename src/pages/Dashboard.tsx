@@ -44,7 +44,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: 'Total Revenue',
-      value: `$${dashboardStats.totalRevenue.toFixed(2)}`,
+      value: `Rs${dashboardStats.totalRevenue.toFixed(2)}`,
       icon: DollarSign,
       color: 'bg-emerald-500',
       textColor: 'text-emerald-600',
@@ -52,7 +52,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: 'Total Profit',
-      value: `$${dashboardStats.totalProfit.toFixed(2)}`,
+      value: `Rs${dashboardStats.totalProfit.toFixed(2)}`,
       icon: TrendingUp,
       color: 'bg-indigo-500',
       textColor: 'text-indigo-600',
