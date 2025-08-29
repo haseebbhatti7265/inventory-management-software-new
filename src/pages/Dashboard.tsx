@@ -110,12 +110,12 @@ const Dashboard: React.FC = () => {
                     <div>
                       <p className="font-medium text-gray-900">{sale.productName}</p>
                       <p className="text-sm text-gray-600">
-                        Qty: {sale.quantity} • ${sale.sellingPrice}/unit
+                        Qty: {sale.quantity} • Rs{sale.sellingPrice}/unit
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-green-600">
-                        +${sale.totalRevenue.toFixed(2)}
+                        +Rs{sale.totalRevenue.toFixed(2)}
                       </p>
                       <p className="text-xs text-gray-500">
                         {new Date(sale.createdAt).toLocaleDateString()}
