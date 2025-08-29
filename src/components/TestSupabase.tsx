@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../supabaseClient';
+// pages/test-supabase.tsx
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../components/supabaseClient';
 
 type Product = {
   id: number;
@@ -10,36 +11,35 @@ type Product = {
 export default function TestSupabase() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [errMsg, setErrMsg] = useState<string | null>(null); // ✅ rename to avoid conflict
+  const [errMsg, setErrMsg] = useState<string | null>(null);
 
-  // Fetch products from Supabase
   const fetchProducts = async () => {
-    setLoading(true);
-    setErrMsg(null);
-
-    const { data, error } = await supabase
-      .from<Product>('products') // ✅ type hint added
-      .select('*');
-
-    if (error) {
-      setErrMsg(error.message);
-    } else if (data) {
-      setProducts(data);
+    try {
+      setLoading(true);
+      setErrMsg(null);
+      const { data, error } = await supabase.from<Product>('products').select('*');
+      if (error) throw error;
+      setProducts(data ?? []);
+    } catch (err: any) {
+      setErrMsg(err.message || 'Unknown error');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  // Insert a sample product
   const addProduct = async () => {
-    const { error } = await supabase
-      .from('products')
-      .insert([{ name: 'Test Product', price: 100 }]);
-
-    if (error) {
-      setErrMsg(error.message);
-    } else {
-      fetchProducts();
+    try {
+      setLoading(true);
+      setErrMsg(null);
+      const { error } = await supabase
+        .from('products')
+        .insert([{ name: 'Test Product', price: 100 }]);
+      if (error) throw error;
+      await fetchProducts();
+    } catch (err: any) {
+      setErrMsg(err.message || 'Insert failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,13 +48,15 @@ export default function TestSupabase() {
   }, []);
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ padding: 20 }}>
       <h2>Supabase Products</h2>
 
-      <button onClick={addProduct}>➕ Add Test Product</button>
-      <button onClick={fetchProducts} style={{ marginLeft: '10px' }}>
-        🔄 Refresh
-      </button>
+      <div style={{ marginBottom: 12 }}>
+        <button onClick={addProduct}>➕ Add Test Product</button>
+        <button onClick={fetchProducts} style={{ marginLeft: 10 }}>
+          🔄 Refresh
+        </button>
+      </div>
 
       {loading && <p>Loading...</p>}
       {errMsg && <p style={{ color: 'red' }}>Error: {errMsg}</p>}
@@ -62,7 +64,7 @@ export default function TestSupabase() {
       <ul>
         {products.map((p) => (
           <li key={p.id}>
-            {p.name} - PKR {p.price}
+            {p.name} — {p.price}
           </li>
         ))}
       </ul>
