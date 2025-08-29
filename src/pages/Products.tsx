@@ -132,7 +132,7 @@ const Products: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.category}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.unit}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.price.toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rs{product.price.toFixed(2)}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         product.stock === 0 
