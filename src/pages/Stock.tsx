@@ -113,10 +113,10 @@ const Stock: React.FC = () => {
                       <div className="text-sm font-medium text-gray-900">{product.stock} {product.unit}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {product.purchasePrice ? `$${product.purchasePrice.toFixed(2)}` : '-'}
+                      {product.purchasePrice ? `Rs${product.purchasePrice.toFixed(2)}` : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ${product.price.toFixed(2)}
+                      Rs{product.price.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -167,8 +167,8 @@ const Stock: React.FC = () => {
                     <tr key={entry.id} className="hover:bg-gray-50 transition-colors duration-150">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product?.name || 'Unknown'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{entry.quantity} {product?.unit}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${entry.purchasePrice.toFixed(2)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${entry.totalCost.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rs{entry.purchasePrice.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rs{entry.totalCost.toFixed(2)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(entry.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
@@ -240,12 +240,12 @@ const Stock: React.FC = () => {
             </label>
             <input
               type="number"
-              step="0.01"
+              step="1"
               min="0"
               value={formData.purchasePrice}
               onChange={(e) => setFormData(prev => ({ ...prev, purchasePrice: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="0.00"
+              placeholder="0"
               required
             />
           </div>
@@ -253,7 +253,7 @@ const Stock: React.FC = () => {
           {formData.quantity && formData.purchasePrice && (
             <div className="bg-gray-50 p-3 rounded-md">
               <p className="text-sm text-gray-600">
-                <strong>Total Cost:</strong> ${(parseFloat(formData.quantity || '0') * parseFloat(formData.purchasePrice || '0')).toFixed(2)}
+                <strong>Total Cost:</strong> Rs{(parseFloat(formData.quantity || '0') * parseFloat(formData.purchasePrice || '0')).toFixed(2)}
               </p>
             </div>
           )}
