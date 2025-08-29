@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../src/supabaseClient';
+import { supabase } from '../supabaseClient';
 
 type Product = {
   id: number;
