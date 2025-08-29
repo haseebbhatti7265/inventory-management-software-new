@@ -7,6 +7,9 @@ import Categories from './pages/Categories';
 import Stock from './pages/Stock';
 import Sales from './pages/Sales';
 
+// ✅ Add this import for Supabase testing
+import TestSupabase from './components/TestSupabase';
+
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [pageTransition, setPageTransition] = useState(false);
@@ -47,6 +50,12 @@ const App: React.FC = () => {
           }`}
         >
           <div className="max-w-7xl mx-auto">
+            
+            {/* ✅ Supabase connection test block */}
+            <div className="mb-6 rounded border p-4 bg-white shadow">
+              <TestSupabase />
+            </div>
+
             {renderCurrentPage()}
           </div>
         </main>
