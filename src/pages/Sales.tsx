@@ -131,16 +131,16 @@ const Sales: React.FC = () => {
                       {sale.quantity} {products.find(p => p.id === sale.productId)?.unit}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ${sale.sellingPrice.toFixed(2)}
+                      Rs{sale.sellingPrice.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                      ${sale.totalRevenue.toFixed(2)}
+                      Rs{sale.totalRevenue.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-sm font-medium ${
+                      <span className={`text-sm font-medium Rs{
                         sale.profit > 0 ? 'text-green-600' : sale.profit < 0 ? 'text-red-600' : 'text-gray-600'
                       }`}>
-                        ${sale.profit.toFixed(2)}
+                        Rs{sale.profit.toFixed(2)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
