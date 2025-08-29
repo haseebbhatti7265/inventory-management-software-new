@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { InventoryProvider } from './contexts/InventoryContext';
 import Navigation from './components/Navigation';
 import Dashboard from './pages/Dashboard';
@@ -6,9 +6,7 @@ import Products from './pages/Products';
 import Categories from './pages/Categories';
 import Stock from './pages/Stock';
 import Sales from './pages/Sales';
-
-// ✅ Add this import for Supabase testing
-import TestSupabase from './components/TestSupabase';
+import TestSupabase from './components/TestSupabase'; // ✅ Supabase test component import
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -43,19 +41,20 @@ const App: React.FC = () => {
     <InventoryProvider>
       <div className="min-h-screen bg-gray-50">
         <Navigation currentPage={currentPage} onPageChange={handlePageChange} />
-        
-        <main 
+
+        {/* ✅ Ye add kiya for testing Supabase */}
+        <div className="p-4">
+          <TestSupabase />
+        </div>
+
+        <main
           className={`mr-64 min-h-screen p-8 transition-all duration-200 ${
-            pageTransition ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'
+            pageTransition
+              ? 'opacity-0 transform translate-y-4'
+              : 'opacity-100 transform translate-y-0'
           }`}
         >
           <div className="max-w-7xl mx-auto">
-            
-            {/* ✅ Supabase connection test block */}
-            <div className="mb-6 rounded border p-4 bg-white shadow">
-              <TestSupabase />
-            </div>
-
             {renderCurrentPage()}
           </div>
         </main>
