@@ -242,12 +242,12 @@ const Products: React.FC = () => {
             </label>
             <input
               type="number"
-              step="0.01"
+              step="0"
               min="0"
               value={formData.price}
               onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="0.00"
+              placeholder="0"
               required
             />
           </div>
