@@ -17,7 +17,10 @@ export default function TestSupabase() {
     try {
       setLoading(true);
       setErrMsg(null);
-      const { data, error } = await supabase.from<Product>('products').select('*');
+
+
+      const { data, error } = await supabase.from('products').select('*');
+
       if (error) throw error;
       setProducts(data ?? []);
     } catch (err: any) {
