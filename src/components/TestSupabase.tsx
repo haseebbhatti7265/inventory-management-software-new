@@ -1,6 +1,6 @@
 // pages/test-supabase.tsx
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../components/supabaseClient';
+import { supabase } from '../supabaseClient';
 
 type Product = {
   id: number;
