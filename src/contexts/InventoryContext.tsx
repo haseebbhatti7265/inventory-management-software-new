@@ -11,22 +11,22 @@ interface InventoryContextType {
   dashboardStats: DashboardStats;
 
   // Products
-  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'stock'>) => void;
-  updateProduct: (id: string, updates: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
+  addproduct: (product: Omit<Product, 'id' | 'createdAt' | 'stock'>) => void;
+  updateproduct: (id: string, updates: Partial<Product>) => void;
+  deleteproduct: (id: string) => void;
 
   // Categories
-  addCategory: (category: Omit<Category, 'id' | 'createdAt'>) => void;
-  updateCategory: (id: string, updates: Partial<Category>) => void;
-  deleteCategory: (id: string) => void;
+  addcategory: (category: Omit<Category, 'id' | 'createdAt'>) => void;
+  updatecategory: (id: string, updates: Partial<Category>) => void;
+  deletecategory: (id: string) => void;
 
   // Stock
-  addStock: (stock: Omit<StockEntry, 'id' | 'createdAt' | 'totalCost'>) => void;
-  deleteStockEntry: (id: string) => void;
+  addstock: (stock: Omit<StockEntry, 'id' | 'createdAt' | 'totalCost'>) => void;
+  deletestockentry: (id: string) => void;
 
   // Sales
-  addSale: (sale: Omit<Sale, 'id' | 'createdAt' | 'totalRevenue' | 'profit'>) => void;
-  deleteSale: (id: string) => void;
+  addsale: (sale: Omit<Sale, 'id' | 'createdAt' | 'totalRevenue' | 'profit'>) => void;
+  deletesale: (id: string) => void;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -75,7 +75,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
   }, [products, categories, sales]);
 
   // Products
-  const addProduct = (productData: Omit<Product, 'id' | 'createdAt' | 'stock'>) => {
+  const addproduct = (productData: Omit<Product, 'id' | 'createdAt' | 'stock'>) => {
     const newProduct: Product = {
       ...productData,
       id: generateId(),
@@ -88,7 +88,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
     storage.saveProducts(updatedProducts);
   };
 
-  const updateProduct = (id: string, updates: Partial<Product>) => {
+  const updateproduct = (id: string, updates: Partial<Product>) => {
     const updatedProducts = products.map(product =>
       product.id === id ? { ...product, ...updates } : product
     );
@@ -96,7 +96,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
     storage.saveProducts(updatedProducts);
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteproduct = (id: string) => {
     // Remove product
     const updatedProducts = products.filter(product => product.id !== id);
 
@@ -113,7 +113,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   // Categories
-  const addCategory = (categoryData: Omit<Category, 'id' | 'createdAt'>) => {
+  const addcategory = (categoryData: Omit<Category, 'id' | 'createdAt'>) => {
     const newCategory: Category = {
       ...categoryData,
       id: generateId(),
@@ -125,7 +125,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
     storage.saveCategories(updatedCategories);
   };
 
-  const updateCategory = (id: string, updates: Partial<Category>) => {
+  const updatecategory = (id: string, updates: Partial<Category>) => {
     const updatedCategories = categories.map(category =>
       category.id === id ? { ...category, ...updates } : category
     );
@@ -133,14 +133,14 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
     storage.saveCategories(updatedCategories);
   };
 
-  const deleteCategory = (id: string) => {
+  const deletecategory = (id: string) => {
     const updatedCategories = categories.filter(category => category.id !== id);
     setCategories(updatedCategories);
     storage.saveCategories(updatedCategories);
   };
 
   // Stock
-  const addStock = (stockData: Omit<StockEntry, 'id' | 'createdAt' | 'totalCost'>) => {
+  const addstock = (stockData: Omit<StockEntry, 'id' | 'createdAt' | 'totalCost'>) => {
     const totalCost = stockData.quantity * stockData.purchasePrice;
     const newStockEntry: StockEntry = {
       ...stockData,
@@ -177,7 +177,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
     storage.saveStockEntries(updatedStockEntries);
   };
 
-  const deleteStockEntry = (id: string) => {
+  const deletestockentry = (id: string) => {
     const entry = stockEntries.find(se => se.id === id);
     if (!entry) return;
 
@@ -194,7 +194,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   // Sales
-  const addSale = (saleData: Omit<Sale, 'id' | 'createdAt' | 'totalRevenue' | 'profit'>) => {
+  const addsale = (saleData: Omit<Sale, 'id' | 'createdAt' | 'totalRevenue' | 'profit'>) => {
     const product = products.find(p => p.id === saleData.productId);
     if (!product || product.stock < saleData.quantity) {
       throw new Error('Insufficient stock');
@@ -226,7 +226,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
     storage.saveSales(updatedSales);
   };
 
-  const deleteSale = (id: string) => {
+  const deletesale = (id: string) => {
     const sale = sales.find(s => s.id === id);
     if (!sale) return;
 
@@ -250,21 +250,19 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
         stockEntries,
         sales,
         dashboardStats,
-        addProduct,
-        updateProduct,
-        deleteProduct,
-        addCategory,
-        updateCategory,
-        deleteCategory,
-        addStock,
-        deleteStockEntry,
-        addSale,
-        deleteSale,
+        addproduct,
+        updateproduct,
+        deleteproduct,
+        addcategory,
+        updatecategory,
+        deletecategory,
+        addstock,
+        deletestockentry,
+        addsale,
+        deletesale,
       }}
     >
       {children}
     </InventoryContext.Provider>
   );
 };
-
-
