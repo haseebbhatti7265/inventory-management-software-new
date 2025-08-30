@@ -1,19 +1,19 @@
 // pages/test-supabase.tsx
 import { useEffect, useState } from 'react';
 import {
-  fetchCategories,
-  addCategory,
-  fetchProducts,
-  addProduct,
-  updateProduct,
-  deleteProduct,
-  fetchStock,
-  addStock,
-  fetchSales,
-  addSale
+  fetchcategories,
+  addcategory,
+  fetchproducts,
+  addproduct,
+  updateproduct,
+  deleteproduct,
+  fetchstock,
+  addstock,
+  fetchsales,
+  addsale
 } from '../services/productService';
 
-type Product = {
+type product = {
   id: number;
   name: string;
   unit: string;
@@ -38,10 +38,10 @@ export default function TestSupabase() {
       const productData = await fetchProducts();
       const stockData = await fetchStock();
       const saleData = await fetchSales();
-      setCategories(categoryData);
-      setProducts(productData);
-      setStock(stockData);
-      setSales(saleData);
+      setcategories(categoryData);
+      setproducts(productData);
+      setstock(stockData);
+      setsales(saleData);
     } catch (err: any) {
       setErrMsg(err.message || 'Unknown error');
     } finally {
@@ -53,7 +53,7 @@ export default function TestSupabase() {
     try {
       setLoading(true);
       setErrMsg(null);
-      await addProduct({
+      await addproduct({
         name: 'New Product',
         selling_price: 100,
         category_id: 1, // Assuming category ID 1 exists
@@ -67,11 +67,11 @@ export default function TestSupabase() {
     }
   };
 
-  const handleDeleteProduct = async (id: number) => {
+  const handleDeleteproduct = async (id: number) => {
     try {
       setLoading(true);
       setErrMsg(null);
-      await deleteProduct(id);
+      await deleteproduct(id);
       await loadAllData();
     } catch (err: any) {
       setErrMsg(err.message || 'Delete failed');
