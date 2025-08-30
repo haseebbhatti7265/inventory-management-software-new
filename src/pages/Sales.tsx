@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 import SearchFilter from '../components/SearchFilter';
 
 const Sales: React.FC = () => {
-  const { products, categories, sales, addSale, deleteSale } = useInventory();
+  const { products, categories, sales, addsale, deletesale } = useInventory();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -47,7 +47,7 @@ const Sales: React.FC = () => {
     }
 
     try {
-      addSale({
+      addsale({
         productId: formData.productId,
         productName: product.name,
         quantity: parseInt(formData.quantity),
@@ -150,7 +150,7 @@ const Sales: React.FC = () => {
                       <button
                         onClick={() => {
                           if (window.confirm('Delete this sale record? This will restore stock.')) {
-                            deleteSale(sale.id);
+                            deletesale(sale.id);
                           }
                         }}
                         className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors duration-150"
@@ -205,84 +205,4 @@ const Sales: React.FC = () => {
                 </option>
               ))}
             </select>
-          </div>
-
-          {selectedProduct && (
-            <div className="bg-blue-50 p-3 rounded-md">
-              <p className="text-sm text-blue-700">
-                <strong>Available Stock:</strong> {selectedProduct.stock} {selectedProduct.unit}
-              </p>
-              <p className="text-sm text-blue-700">
-                <strong>Purchase Price:</strong> ${selectedProduct.purchasePrice?.toFixed(2) || '0.00'}
-              </p>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Quantity *
-            </label>
-            <input
-              type="number"
-              min="1"
-              max={selectedProduct?.stock || 1}
-              value={formData.quantity}
-              onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              placeholder="Enter quantity"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Selling Price (per unit) *
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.sellingPrice}
-              onChange={(e) => setFormData(prev => ({ ...prev, sellingPrice: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              placeholder="0.00"
-              required
-            />
-          </div>
-
-          {formData.quantity && formData.sellingPrice && selectedProduct && (
-            <div className="bg-gray-50 p-3 rounded-md space-y-2">
-              <p className="text-sm text-gray-600">
-                <strong>Total Revenue:</strong> ${(parseFloat(formData.quantity || '0') * parseFloat(formData.sellingPrice || '0')).toFixed(2)}
-              </p>
-              <p className="text-sm text-gray-600">
-                <strong>Expected Profit:</strong> ${(parseFloat(formData.quantity || '0') * (parseFloat(formData.sellingPrice || '0') - (selectedProduct.purchasePrice || 0))).toFixed(2)}
-              </p>
-            </div>
-          )}
-
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={() => {
-                setIsModalOpen(false);
-                resetForm();
-              }}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors duration-200"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 transition-colors duration-200"
-            >
-              Record Sale
-            </button>
-          </div>
-        </form>
-      </Modal>
-    </div>
-  );
-};
-
-export default Sales;
+          </
