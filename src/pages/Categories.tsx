@@ -3,8 +3,8 @@ import { useInventory } from '../contexts/InventoryContext';
 import { Tags, Plus, Edit, Trash2 } from 'lucide-react';
 import Modal from '../components/Modal';
 
-const Categories: React.FC = () => {  // Rename component to "Categories"
-  const { categories, addCategory, updateCategory, deleteCategory } = useInventory();  // Rename functions to camelCase
+const Categories: React.FC = () => {  
+  const { categories, addCategory, updateCategory, deleteCategory } = useInventory();  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,9 +37,9 @@ const Categories: React.FC = () => {  // Rename component to "Categories"
     };
 
     if (editingCategory) {
-      updateCategory(editingCategory, categoryData);  // Renamed function
+      updateCategory(editingCategory, categoryData);
     } else {
-      addCategory(categoryData);  // Renamed function
+      addCategory(categoryData);
     }
 
     setIsModalOpen(false);
@@ -57,7 +57,7 @@ const Categories: React.FC = () => {  // Rename component to "Categories"
 
   const handleDelete = (id: string) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
-      deleteCategory(id);  // Renamed function
+      deleteCategory(id);
     }
   };
 
@@ -96,7 +96,7 @@ const Categories: React.FC = () => {  // Rename component to "Categories"
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {filteredCategories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-            {filteredCategories.map((category, index) => (
+            {filteredCategories.map((category) => (
               <div
                 key={category.id}
                 className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
@@ -161,7 +161,7 @@ const Categories: React.FC = () => {  // Rename component to "Categories"
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}  // Name change handling
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}  
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter category name"
               required
@@ -174,7 +174,7 @@ const Categories: React.FC = () => {  // Rename component to "Categories"
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}  // Description change handling
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}  
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter category description"
@@ -205,4 +205,4 @@ const Categories: React.FC = () => {  // Rename component to "Categories"
   );
 };
 
-export default Categories;  // Export with correct component name
+export default Categories;
