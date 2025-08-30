@@ -4,7 +4,7 @@ import { Warehouse, Plus, Package, Trash2 } from 'lucide-react';
 import Modal from '../components/Modal';
 import SearchFilter from '../components/SearchFilter';
 
-const stock: React.FC = () => {
+const Stock: React.FC = () => {
   const { products, categories, addstock, stockentries, deletestockentry } = useInventory();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -282,4 +282,4 @@ const stock: React.FC = () => {
   );
 };
 
-export default stock;
+export default Stock;
