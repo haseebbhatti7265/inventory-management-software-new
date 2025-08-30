@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useInventory } from '../contexts/InventoryContext';
 import { Warehouse, Plus, Package, Trash2 } from 'lucide-react';
 import Modal from '../components/Modal';
 import SearchFilter from '../components/SearchFilter';
-import { supabase } from '../supabaseClient'; // Importing the supabase client
 
 const Stock: React.FC = () => {
-  const { products, categories, stockentries, setStockEntries } = useInventory();
+  const { products, categories, addstock, stockentries, deletestockentry } = useInventory();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -15,19 +14,6 @@ const Stock: React.FC = () => {
     quantity: '',
     purchasePrice: '',
   });
-
-  // Fetch stock entries from the database (Supabase)
-  useEffect(() => {
-    const fetchStockEntries = async () => {
-      const { data, error } = await supabase.from('stock_entries').select('*');
-      if (error) {
-        console.error('Error fetching stock entries:', error.message);
-      } else {
-        setStockEntries(data);  // Update the state with fetched data
-      }
-    };
-    fetchStockEntries();
-  }, [setStockEntries]);
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -40,58 +26,25 @@ const Stock: React.FC = () => {
     setFormData({ productId: '', quantity: '', purchasePrice: '' });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.productId || !formData.quantity || !formData.purchasePrice) {
       alert('Please fill all fields');
       return;
     }
 
     try {
-      // Insert new stock entry in Supabase
-      const { data, error } = await supabase.from('stock_entries').insert([
-        {
-          productId: formData.productId,
-          quantity: parseInt(formData.quantity),
-          purchasePrice: parseFloat(formData.purchasePrice),
-          totalCost: parseInt(formData.quantity) * parseFloat(formData.purchasePrice),
-          createdAt: new Date().toISOString(),
-        }
-      ]);
-      
-      if (error) {
-        throw error;
-      }
-
-      console.log('Stock entry added:', data);
-
-      // Refresh stock entries state
-      const { data: refreshedData } = await supabase.from('stock_entries').select('*');
-      setStockEntries(refreshedData);
+      addstock({
+        productId: formData.productId,
+        quantity: parseInt(formData.quantity),
+        purchasePrice: parseFloat(formData.purchasePrice),
+      });
 
       setIsModalOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Error adding stock:', error.message);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this stock entry?')) {
-      try {
-        const { data, error } = await supabase.from('stock_entries').delete().eq('id', id);
-        if (error) throw error;
-
-        console.log('Stock entry deleted:', data);
-
-        // Refresh stock entries state
-        const { data: refreshedData } = await supabase.from('stock_entries').select('*');
-        setStockEntries(refreshedData);
-
-      } catch (error) {
-        console.error('Error deleting stock entry:', error.message);
-      }
+      alert('Error adding stock: ' + (error as Error).message);
     }
   };
 
@@ -166,9 +119,13 @@ const Stock: React.FC = () => {
                       Rs{product.price.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium $(
-                        product.stock === 0 ? 'bg-red-100 text-red-800' : product.stock <= 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
-                      )`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        product.stock === 0 
+                          ? 'bg-red-100 text-red-800' 
+                          : product.stock <= 5 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : 'bg-green-100 text-green-800'
+                      }`}>
                         {product.stock === 0 ? 'Out of Stock' : product.stock <= 5 ? 'Low Stock' : 'In Stock'}
                       </span>
                     </td>
@@ -215,7 +172,11 @@ const Stock: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(entry.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
-                          onClick={() => handleDelete(entry.id)}
+                          onClick={() => {
+                            if (window.confirm('Delete this stock entry? This will reduce product stock.')) {
+                              deletestockentry(entry.id);
+                            }
+                          }}
                           className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors duration-150"
                         >
                           <Trash2 className="h-4 w-4" />
