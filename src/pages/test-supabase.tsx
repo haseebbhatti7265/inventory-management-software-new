@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { fetchProducts, addProduct, updateProduct, deleteProduct } from '../productService'
 
-type Product = {
+type name = {
   id: number
   name: string
   price: number
