@@ -6,13 +6,13 @@ export async function fetchProducts() {
   return data ?? []
 }
 
-export async function addProduct(product: { name: string; price: number; quantity: number }) {
+export async function addProduct(product: { name: string; selling_price: number; quantity: number }) {
   const { data, error } = await supabase.from('products').insert([product])
   if (error) throw error
   return data
 }
 
-export async function updateProduct(id: number, updates: Partial<{ name: string; price: number; quantity: number }>) {
+export async function updateProduct(id: number, updates: Partial<{ name: string; selling_price: number; quantity: number }>) {
   const { data, error } = await supabase.from('products').update(updates).eq('id', id)
   if (error) throw error
   return data
