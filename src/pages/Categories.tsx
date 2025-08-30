@@ -3,8 +3,8 @@ import { useInventory } from '../contexts/InventoryContext';
 import { Tags, Plus, Edit, Trash2 } from 'lucide-react';
 import Modal from '../components/Modal';
 
-const categories: React.FC = () => {
-  const { categories, addcategory, updatecategory, deletecategory } = useInventory();
+const Categories: React.FC = () => {  // Rename component to "Categories"
+  const { categories, addCategory, updateCategory, deleteCategory } = useInventory();  // Rename functions to camelCase
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,9 +37,9 @@ const categories: React.FC = () => {
     };
 
     if (editingCategory) {
-      updatecategory(editingCategory, categoryData);
+      updateCategory(editingCategory, categoryData);  // Renamed function
     } else {
-      addcategory(categoryData);
+      addCategory(categoryData);  // Renamed function
     }
 
     setIsModalOpen(false);
@@ -57,7 +57,7 @@ const categories: React.FC = () => {
 
   const handleDelete = (id: string) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
-      deletecategory(id);
+      deleteCategory(id);  // Renamed function
     }
   };
 
@@ -161,7 +161,7 @@ const categories: React.FC = () => {
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}  // Name change handling
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter category name"
               required
@@ -174,7 +174,7 @@ const categories: React.FC = () => {
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}  // Description change handling
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter category description"
@@ -205,4 +205,4 @@ const categories: React.FC = () => {
   );
 };
 
-export default categories;
+export default Categories;  // Export with correct component name
