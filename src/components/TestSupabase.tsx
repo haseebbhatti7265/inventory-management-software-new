@@ -1,5 +1,5 @@
 // pages/test-supabase.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 
 type Product = {
