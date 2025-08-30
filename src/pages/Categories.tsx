@@ -3,8 +3,8 @@ import { useInventory } from '../contexts/InventoryContext';
 import { Tags, Plus, Edit, Trash2 } from 'lucide-react';
 import Modal from '../components/Modal';
 
-const Categories: React.FC = () => {
-  const { categories, addCategory, updateCategory, deleteCategory } = useInventory();
+const categories: React.FC = () => {
+  const { categories, addcategory, updatecategory, deletecategory } = useInventory();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,9 +37,9 @@ const Categories: React.FC = () => {
     };
 
     if (editingCategory) {
-      updateCategory(editingCategory, categoryData);
+      updatecategory(editingCategory, categoryData);
     } else {
-      addCategory(categoryData);
+      addcategory(categoryData);
     }
 
     setIsModalOpen(false);
@@ -57,7 +57,7 @@ const Categories: React.FC = () => {
 
   const handleDelete = (id: string) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
-      deleteCategory(id);
+      deletecategory(id);
     }
   };
 
@@ -205,4 +205,4 @@ const Categories: React.FC = () => {
   );
 };
 
-export default Categories;
+export default categories;
