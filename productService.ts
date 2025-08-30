@@ -3,7 +3,7 @@ import supabase from '../supabaseClient';
 // --- CATEGORY CRUD ---
 export const getcategories = async () => {
   const { data, error } = await supabase
-    .from('categories')
+    .from('categories')  // Ensure it's lowercase
     .select('*')
     .order('name');
   if (error) throw error;
@@ -12,7 +12,7 @@ export const getcategories = async () => {
 
 export const addcategory = async (name: string) => {
   const { data, error } = await supabase
-    .from('categories')
+    .from('categories')  // Ensure it's lowercase
     .insert([{ name }]);
   if (error) throw error;
   return data;
@@ -21,8 +21,8 @@ export const addcategory = async (name: string) => {
 // --- PRODUCT CRUD ---
 export const getproducts = async () => {
   const { data, error } = await supabase
-    .from('products')
-    .select('*, category:category_id(name)')
+    .from('products')  // Ensure it's lowercase
+    .select('*, category:category_id(name)')  // Relationship with category_id
     .order('name');
   if (error) throw error;
   return data;
@@ -35,7 +35,7 @@ export const addproduct = async (product: {
   selling_price: number;
 }) => {
   const { data, error } = await supabase
-    .from('products')
+    .from('products')  // Ensure it's lowercase
     .insert([product]);
   if (error) throw error;
   return data;
@@ -44,7 +44,7 @@ export const addproduct = async (product: {
 // --- STOCK CRUD ---
 export const getstock = async () => {
   const { data, error } = await supabase
-    .from('stock')
+    .from('stock')  // Ensure it's lowercase
     .select('*, product:product_id(name, selling_price)')
     .order('created_at', { ascending: false });
   if (error) throw error;
@@ -57,7 +57,7 @@ export const addstock = async (stock: {
   purchase_price: number;
 }) => {
   const { data, error } = await supabase
-    .from('stock')
+    .from('stock')  // Ensure it's lowercase
     .insert([stock]);
   if (error) throw error;
   return data;
@@ -66,7 +66,7 @@ export const addstock = async (stock: {
 // --- SALES CRUD ---
 export const getsales = async () => {
   const { data, error } = await supabase
-    .from('sales')
+    .from('sales')  // Ensure it's lowercase
     .select('*, product:product_id(name)')
     .order('created_at', { ascending: false });
   if (error) throw error;
@@ -79,7 +79,7 @@ export const addsale = async (sale: {
   quantity: number;
 }) => {
   const { data, error } = await supabase
-    .from('sales')
+    .from('sales')  // Ensure it's lowercase
     .insert([sale]);
   if (error) throw error;
   return data;
