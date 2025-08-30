@@ -205,4 +205,55 @@ const Sales: React.FC = () => {
                 </option>
               ))}
             </select>
-          </
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Quantity *
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={formData.quantity}
+              onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Selling Price *
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.sellingPrice}
+              onChange={(e) => setFormData(prev => ({ ...prev, sellingPrice: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setIsModalOpen(false);
+                resetForm();
+              }}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 transition-colors duration-200"
+            >
+              Record Sale
+            </button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  );
+};
+
+export default Sales;
