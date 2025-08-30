@@ -1,77 +1,87 @@
-// pages/test-supabase.tsx
-import { useEffect, useState } from 'react'
-import { fetchProducts, addProduct, updateProduct, deleteProduct } from '../productService'
-
-type Products = {
-  id: number
-  name: string
-  price: number
-  quantity: number
-}
+import { useState, useEffect } from 'react';
+import {
+  getCategories,
+  addCategory,
+  getProducts,
+  addProduct,
+  getStock,
+  addStock,
+  getSales,
+  addSale
+} from '../services/productService';
 
 export default function TestSupabase() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(false)
-  const [errMsg, setErrMsg] = useState<string | null>(null)
+  const [categories, setCategories] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [stock, setStock] = useState<any[]>([]);
+  const [sales, setSales] = useState<any[]>([]);
 
-  const loadProducts = async () => {
-    try {
-      setLoading(true)
-      setErrMsg(null)
-      const data = await fetchProducts()
-      setProducts(data)
-    } catch (err: any) {
-      setErrMsg(err.message || 'Unknown error')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleAddProduct = async () => {
-    try {
-      setLoading(true)
-      setErrMsg(null)
-      await addProduct({ name: 'Test Product', price: 100, quantity: 1 })
-      await loadProducts()
-    } catch (err: any) {
-      setErrMsg(err.message || 'Insert failed')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDeleteProduct = async (id: number) => {
-    try {
-      setLoading(true)
-      setErrMsg(null)
-      await deleteProduct(id)
-      await loadProducts()
-    } catch (err: any) {
-      setErrMsg(err.message || 'Delete failed')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const fetchAll = async () => {
+    setCategories(await getCategories());
+    setProducts(await getProducts());
+    setStock(await getStock());
+    setSales(await getSales());
+  };
 
   useEffect(() => {
-    loadProducts()
-  }, [])
+    fetchAll();
+  }, []);
+
+  const handleAddCategory = async () => {
+    await addCategory('New Category');
+    fetchAll();
+  };
+
+  const handleAddProduct = async () => {
+    if (!categories.length) return alert('Add category first');
+    await addProduct({
+      name: 'Sample Product',
+      category_id: categories[0].id,
+      unit: 'pcs',
+      selling_price: 100
+    });
+    fetchAll();
+  };
+
+  const handleAddStock = async () => {
+    if (!products.length) return alert('Add product first');
+    await addStock({
+      product_id: products[0].id,
+      quantity: 10,
+      purchase_price: 80
+    });
+    fetchAll();
+  };
+
+  const handleAddSale = async () => {
+    if (!products.length) return alert('Add product first');
+    await addSale({
+      product_id: products[0].id,
+      selling_price: 120,
+      quantity: 2
+    });
+    fetchAll();
+  };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Supabase Products</h2>
-      <button onClick={handleAddProduct}>➕ Add Test Product</button>
-      {loading && <p>Loading...</p>}
-      {errMsg && <p style={{ color: 'red' }}>Error: {errMsg}</p>}
+    <div>
+      <h1>Supabase Test</h1>
+      <button onClick={handleAddCategory}>Add Category</button>
+      <button onClick={handleAddProduct}>Add Product</button>
+      <button onClick={handleAddStock}>Add Stock</button>
+      <button onClick={handleAddSale}>Add Sale</button>
 
-      <ul>
-        {products.map((p) => (
-          <li key={p.id}>
-            {p.name} — {p.price} — {p.quantity}{' '}
-            <button onClick={() => handleDeleteProduct(p.id)}>🗑 Delete</button>
-          </li>
-        ))}
-      </ul>
+      <h2>Categories</h2>
+      <pre>{JSON.stringify(categories, null, 2)}</pre>
+
+      <h2>Products</h2>
+      <pre>{JSON.stringify(products, null, 2)}</pre>
+
+      <h2>Stock</h2>
+      <pre>{JSON.stringify(stock, null, 2)}</pre>
+
+      <h2>Sales</h2>
+      <pre>{JSON.stringify(sales, null, 2)}</pre>
     </div>
-  )
+  );
 }
