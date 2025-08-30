@@ -4,8 +4,8 @@ import { Warehouse, Plus, Package, Trash2 } from 'lucide-react';
 import Modal from '../components/Modal';
 import SearchFilter from '../components/SearchFilter';
 
-const Stock: React.FC = () => {
-  const { products, categories, addStock, stockEntries, deleteStockEntry } = useInventory();
+const stock: React.FC = () => {
+  const { products, categories, addstock, stockentries, deletestockentry } = useInventory();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -35,7 +35,7 @@ const Stock: React.FC = () => {
     }
 
     try {
-      addStock({
+      addstock({
         productId: formData.productId,
         quantity: parseInt(formData.quantity),
         purchasePrice: parseFloat(formData.purchasePrice),
@@ -143,7 +143,7 @@ const Stock: React.FC = () => {
         )}
       </div>
 
-      {stockEntries.length > 0 && (
+      {stockentries.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mt-8">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-800">Recent Stock Entries</h2>
@@ -161,7 +161,7 @@ const Stock: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {stockEntries.map(entry => {
+                {stockentries.map(entry => {
                   const product = products.find(p => p.id === entry.productId);
                   return (
                     <tr key={entry.id} className="hover:bg-gray-50 transition-colors duration-150">
@@ -174,7 +174,7 @@ const Stock: React.FC = () => {
                         <button
                           onClick={() => {
                             if (window.confirm('Delete this stock entry? This will reduce product stock.')) {
-                              deleteStockEntry(entry.id);
+                              deletestockentry(entry.id);
                             }
                           }}
                           className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors duration-150"
@@ -282,4 +282,4 @@ const Stock: React.FC = () => {
   );
 };
 
-export default Stock;
+export default stock;
