@@ -6,7 +6,7 @@ import Products from './pages/Products';
 import Categories from './pages/Categories';
 import Stock from './pages/Stock';
 import Sales from './pages/Sales';
-import TestSupabase from './components/TestSupabase'; // ✅ Supabase test component import
+
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -42,11 +42,7 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         <Navigation currentPage={currentPage} onPageChange={handlePageChange} />
 
-        {/* ✅ Ye add kiya for testing Supabase */}
-        <div className="p-4">
-          <TestSupabase />
-        </div>
-
+  
         <main
           className={`mr-64 min-h-screen p-8 transition-all duration-200 ${
             pageTransition
