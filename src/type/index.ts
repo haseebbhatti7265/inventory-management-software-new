@@ -1,40 +1,39 @@
 export interface Product {
-  id: string;
+  id: number;
   name: string;
-  category: string;
+  category_id: number;
+  category_name?: string; // For display purposes
   unit: string;
-  price: number;
+  selling_price: number;
   stock: number;
-  purchasePrice?: number;
-  createdAt: string;
+  purchase_price?: number;
+  created_at: string;
 }
 
 export interface Category {
-  id: string;
+  id: number;
   name: string;
   description?: string;
-  createdAt: string;
+  created_at: string;
 }
 
 export interface StockEntry {
-  id: string;
-  productId: string;
+  id: number;
+  product_id: number;
   quantity: number;
-  purchasePrice: number;
-  totalCost: number;
-  createdAt: string;
+  purchase_price: number;
+  total_cost: number;
+  created_at: string;
 }
 
 export interface Sale {
-  id: string;
-  productId: string;
-  productName: string;
+  id: number;
+  product_id: number;
   quantity: number;
-  sellingPrice: number;
-  purchasePrice: number;
-  totalRevenue: number;
+  selling_price: number;
+  total_revenue: number;
   profit: number;
-  createdAt: string;
+  created_at: string;
 }
 
 export interface DashboardStats {

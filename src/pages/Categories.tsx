@@ -4,9 +4,9 @@ import { Tags, Plus, Edit, Trash2 } from 'lucide-react';
 import Modal from '../components/Modal';
 
 const Categories: React.FC = () => {  
-  const { categories, addCategory, updateCategory, deleteCategory } = useInventory();  
+  const { categories, addcategory, updatecategory, deletecategory, loading, error } = useInventory();  
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [editingCategory, setEditingCategory] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     name: '',
@@ -23,7 +23,7 @@ const Categories: React.FC = () => {
     setEditingCategory(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name) {
@@ -31,19 +31,23 @@ const Categories: React.FC = () => {
       return;
     }
 
-    const categoryData = {
-      name: formData.name,
-      description: formData.description || undefined,
-    };
+    try {
+      const categoryData = {
+        name: formData.name,
+        description: formData.description || undefined,
+      };
 
-    if (editingCategory) {
-      updateCategory(editingCategory, categoryData);
-    } else {
-      addCategory(categoryData);
+      if (editingCategory) {
+        await updatecategory(editingCategory, categoryData);
+      } else {
+        await addcategory(categoryData);
+      }
+
+      setIsModalOpen(false);
+      resetForm();
+    } catch (error) {
+      alert('Error saving category: ' + (error as Error).message);
     }
-
-    setIsModalOpen(false);
-    resetForm();
   };
 
   const handleEdit = (category: any) => {
@@ -55,11 +59,46 @@ const Categories: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
-      deleteCategory(id);
+      try {
+        await deletecategory(id);
+      } catch (error) {
+        alert('Error deleting category: ' + (error as Error).message);
+      }
     }
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading categories...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">Error Loading Categories</h3>
+          <p className="mt-2 text-sm text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -99,21 +138,22 @@ const Categories: React.FC = () => {
             {filteredCategories.map((category) => (
               <div
                 key={category.id}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow duration-200"
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <Tags className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-gray-900">{category.name}</h3>
-                    </div>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-2">{category.name}</h3>
+                    {category.description && (
+                      <p className="text-sm text-gray-600 mb-3">{category.description}</p>
+                    )}
+                    <p className="text-xs text-gray-500">
+                      Created: {new Date(category.created_at).toLocaleDateString()}
+                    </p>
                   </div>
-                  <div className="flex space-x-1">
+                  <div className="flex space-x-2 ml-4">
                     <button
                       onClick={() => handleEdit(category)}
-                      className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-50 transition-colors duration-150"
+                      className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-colors duration-150"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
@@ -125,22 +165,16 @@ const Categories: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                
-                {category.description && (
-                  <p className="text-sm text-gray-600 mb-3">{category.description}</p>
-                )}
-                
-                <div className="text-xs text-gray-500">
-                  Created: {new Date(category.createdAt).toLocaleDateString()}
-                </div>
               </div>
             ))}
           </div>
         ) : (
           <div className="text-center py-12">
             <Tags className="mx-auto h-12 w-12 text-gray-300" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No categories</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by creating a new category.</p>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No categories found</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {searchTerm ? 'Try adjusting your search terms.' : 'Create your first category to get started.'}
+            </p>
           </div>
         )}
       </div>
@@ -151,7 +185,7 @@ const Categories: React.FC = () => {
           setIsModalOpen(false);
           resetForm();
         }}
-        title={editingCategory ? 'Edit Category' : 'Add New Category'}
+        title={editingCategory ? "Edit Category" : "Add Category"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -161,7 +195,7 @@ const Categories: React.FC = () => {
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}  
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter category name"
               required
@@ -174,10 +208,10 @@ const Categories: React.FC = () => {
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}  
-              rows={3}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter category description"
+              rows={3}
             />
           </div>
 
@@ -196,7 +230,7 @@ const Categories: React.FC = () => {
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 transition-colors duration-200"
             >
-              {editingCategory ? 'Update Category' : 'Add Category'}
+              {editingCategory ? "Update Category" : "Add Category"}
             </button>
           </div>
         </form>

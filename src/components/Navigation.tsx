@@ -1,6 +1,5 @@
 import React from 'react';
 import { LayoutDashboard, Package, Tags, Warehouse, ShoppingCart } from 'lucide-react';
-import { config } from '../utils/config';
 
 interface NavigationProps {
   currentPage: string;
@@ -19,7 +18,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage, onPageChange }) =>
   return (
     <nav className="fixed right-0 top-0 h-full w-64 bg-white shadow-lg border-l border-gray-200 z-40">
       <div className="p-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-800">{config.app.name}</h1>
+        <h1 className="text-xl font-bold text-gray-800">Inventory</h1>
         <p className="text-sm text-gray-600">Management System</p>
       </div>
       

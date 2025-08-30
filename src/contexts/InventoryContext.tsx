@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import { Product, Category, StockEntry, Sale, DashboardStats } from '../type';
-import { storage, generateId } from '../utils/storage';
+import { supabaseService } from '../services/supabaseService';
 
 interface InventoryContextType {
   // Data
@@ -9,24 +9,29 @@ interface InventoryContextType {
   stockEntries: StockEntry[];
   sales: Sale[];
   dashboardStats: DashboardStats;
+  loading: boolean;
+  error: string | null;
 
   // Products
-  addproduct: (product: Omit<Product, 'id' | 'createdAt' | 'stock'>) => void;
-  updateproduct: (id: string, updates: Partial<Product>) => void;
-  deleteproduct: (id: string) => void;
+  addproduct: (product: Omit<Product, 'id' | 'created_at' | 'stock' | 'category_name'>) => Promise<void>;
+  updateproduct: (id: number, updates: Partial<Product>) => Promise<void>;
+  deleteproduct: (id: number) => Promise<void>;
 
   // Categories
-  addcategory: (category: Omit<Category, 'id' | 'createdAt'>) => void;
-  updatecategory: (id: string, updates: Partial<Category>) => void;
-  deletecategory: (id: string) => void;
+  addcategory: (category: Omit<Category, 'id' | 'created_at'>) => Promise<void>;
+  updatecategory: (id: number, updates: Partial<Category>) => Promise<void>;
+  deletecategory: (id: number) => Promise<void>;
 
   // Stock
-  addstock: (stock: Omit<StockEntry, 'id' | 'createdAt' | 'totalCost'>) => void;
-  deletestockentry: (id: string) => void;
+  addstock: (stock: Omit<StockEntry, 'id' | 'created_at' | 'total_cost'>) => Promise<void>;
+  deletestockentry: (id: number) => Promise<void>;
 
   // Sales
-  addsale: (sale: Omit<Sale, 'id' | 'createdAt' | 'totalRevenue' | 'profit'>) => void;
-  deletesale: (id: string) => void;
+  addsale: (sale: Omit<Sale, 'id' | 'created_at'>) => Promise<void>;
+  deletesale: (id: number) => Promise<void>;
+
+  // Refresh data
+  refreshData: () => Promise<void>;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -44,13 +49,36 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [categories, setCategories] = useState<Category[]>([]);
   const [stockEntries, setStockEntries] = useState<StockEntry[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load data from localStorage on mount
+  // Load data from Supabase on mount
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const [categoriesData, productsData, stockEntriesData, salesData] = await Promise.all([
+        supabaseService.getCategories(),
+        supabaseService.getProducts(),
+        supabaseService.getStockEntries(),
+        supabaseService.getSales()
+      ]);
+
+      setCategories(categoriesData);
+      setProducts(productsData);
+      setStockEntries(stockEntriesData);
+      setSales(salesData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+      console.error('Error loading data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setProducts(storage.getProducts());
-    setCategories(storage.getCategories());
-    setStockEntries(storage.getStockEntries());
-    setSales(storage.getSales());
+    loadData();
   }, []);
 
   // Calculate dashboard stats
@@ -59,7 +87,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
     const totalCategories = categories.length;
     const totalStock = products.reduce((sum, product) => sum + product.stock, 0);
     const totalSales = sales.length;
-    const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalRevenue, 0);
+    const totalRevenue = sales.reduce((sum, sale) => sum + sale.total_revenue, 0);
     const totalProfit = sales.reduce((sum, sale) => sum + sale.profit, 0);
     const lowStockProducts = products.filter(product => product.stock <= 5);
 
@@ -75,171 +103,184 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
   }, [products, categories, sales]);
 
   // Products
-  const addproduct = (productData: Omit<Product, 'id' | 'createdAt' | 'stock'>) => {
-    const newProduct: Product = {
-      ...productData,
-      id: generateId(),
-      stock: 0,
-      createdAt: new Date().toISOString(),
-    };
-
-    const updatedProducts = [...products, newProduct];
-    setProducts(updatedProducts);
-    storage.saveProducts(updatedProducts);
+  const addproduct = async (productData: Omit<Product, 'id' | 'created_at' | 'stock' | 'category_name'>) => {
+    try {
+      const newProduct = await supabaseService.createProduct(productData);
+      setProducts(prev => [...prev, newProduct]);
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const updateproduct = (id: string, updates: Partial<Product>) => {
-    const updatedProducts = products.map(product =>
-      product.id === id ? { ...product, ...updates } : product
-    );
-    setProducts(updatedProducts);
-    storage.saveProducts(updatedProducts);
+  const updateproduct = async (id: number, updates: Partial<Product>) => {
+    try {
+      const updatedProduct = await supabaseService.updateProduct(id, updates);
+      setProducts(prev => prev.map(product => 
+        product.id === id ? updatedProduct : product
+      ));
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const deleteproduct = (id: string) => {
-    // Remove product
-    const updatedProducts = products.filter(product => product.id !== id);
-
-    // Cascade delete related stock entries and sales
-    const updatedStockEntries = stockEntries.filter(se => se.productId !== id);
-    const updatedSales = sales.filter(s => s.productId !== id);
-
-    setProducts(updatedProducts);
-    setStockEntries(updatedStockEntries);
-    setSales(updatedSales);
-    storage.saveProducts(updatedProducts);
-    storage.saveStockEntries(updatedStockEntries);
-    storage.saveSales(updatedSales);
+  const deleteproduct = async (id: number) => {
+    try {
+      await supabaseService.deleteProduct(id);
+      setProducts(prev => prev.filter(product => product.id !== id));
+      setStockEntries(prev => prev.filter(se => se.product_id !== id));
+      setSales(prev => prev.filter(s => s.product_id !== id));
+    } catch (err) {
+      throw err;
+    }
   };
 
   // Categories
-  const addcategory = (categoryData: Omit<Category, 'id' | 'createdAt'>) => {
-    const newCategory: Category = {
-      ...categoryData,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-    };
-
-    const updatedCategories = [...categories, newCategory];
-    setCategories(updatedCategories);
-    storage.saveCategories(updatedCategories);
+  const addcategory = async (categoryData: Omit<Category, 'id' | 'created_at'>) => {
+    try {
+      const newCategory = await supabaseService.createCategory(categoryData);
+      setCategories(prev => [...prev, newCategory]);
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const updatecategory = (id: string, updates: Partial<Category>) => {
-    const updatedCategories = categories.map(category =>
-      category.id === id ? { ...category, ...updates } : category
-    );
-    setCategories(updatedCategories);
-    storage.saveCategories(updatedCategories);
+  const updatecategory = async (id: number, updates: Partial<Category>) => {
+    try {
+      const updatedCategory = await supabaseService.updateCategory(id, updates);
+      setCategories(prev => prev.map(category => 
+        category.id === id ? updatedCategory : category
+      ));
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const deletecategory = (id: string) => {
-    const updatedCategories = categories.filter(category => category.id !== id);
-    setCategories(updatedCategories);
-    storage.saveCategories(updatedCategories);
+  const deletecategory = async (id: number) => {
+    try {
+      await supabaseService.deleteCategory(id);
+      setCategories(prev => prev.filter(category => category.id !== id));
+    } catch (err) {
+      throw err;
+    }
   };
 
   // Stock
-  const addstock = (stockData: Omit<StockEntry, 'id' | 'createdAt' | 'totalCost'>) => {
-    const totalCost = stockData.quantity * stockData.purchasePrice;
-    const newStockEntry: StockEntry = {
-      ...stockData,
-      id: generateId(),
-      totalCost,
-      createdAt: new Date().toISOString(),
-    };
+  const addstock = async (stockData: Omit<StockEntry, 'id' | 'created_at' | 'total_cost'>) => {
+    try {
+      const totalCost = stockData.quantity * stockData.purchase_price;
+      const newStockEntry = await supabaseService.createStockEntry({
+        ...stockData,
+        total_cost: totalCost
+      });
 
-    // Update product stock and purchase price (weighted average)
-    const updatedProducts = products.map(product => {
-      if (product.id === stockData.productId) {
+      // Update product stock and purchase price (weighted average)
+      const product = products.find(p => p.id === stockData.product_id);
+      if (product) {
         const currentStock = product.stock;
-        const currentPurchasePrice = product.purchasePrice || 0;
+        const currentPurchasePrice = product.purchase_price || 0;
         const newStock = currentStock + stockData.quantity;
 
         const totalCurrentValue = currentStock * currentPurchasePrice;
         const totalNewValue = totalCurrentValue + totalCost;
-        const newPurchasePrice = newStock > 0 ? totalNewValue / newStock : stockData.purchasePrice;
+        const newPurchasePrice = newStock > 0 ? totalNewValue / newStock : stockData.purchase_price;
 
-        return {
-          ...product,
-          stock: newStock,
-          purchasePrice: newPurchasePrice,
-        };
+        await supabaseService.updateProductStock(stockData.product_id, newStock, newPurchasePrice);
+        
+        setProducts(prev => prev.map(p => 
+          p.id === stockData.product_id 
+            ? { ...p, stock: newStock, purchase_price: newPurchasePrice }
+            : p
+        ));
       }
-      return product;
-    });
 
-    const updatedStockEntries = [...stockEntries, newStockEntry];
-
-    setProducts(updatedProducts);
-    setStockEntries(updatedStockEntries);
-    storage.saveProducts(updatedProducts);
-    storage.saveStockEntries(updatedStockEntries);
+      setStockEntries(prev => [...prev, newStockEntry]);
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const deletestockentry = (id: string) => {
-    const entry = stockEntries.find(se => se.id === id);
-    if (!entry) return;
+  const deletestockentry = async (id: number) => {
+    try {
+      const entry = stockEntries.find(se => se.id === id);
+      if (!entry) return;
 
-    // Roll back the stock on the related product
-    const updatedProducts = products.map(p =>
-      p.id === entry.productId ? { ...p, stock: Math.max(0, p.stock - entry.quantity) } : p
-    );
-    const updatedStockEntries = stockEntries.filter(se => se.id !== id);
+      await supabaseService.deleteStockEntry(id);
 
-    setProducts(updatedProducts);
-    setStockEntries(updatedStockEntries);
-    storage.saveProducts(updatedProducts);
-    storage.saveStockEntries(updatedStockEntries);
+      // Roll back the stock on the related product
+      const product = products.find(p => p.id === entry.product_id);
+      if (product) {
+        const newStock = Math.max(0, product.stock - entry.quantity);
+        await supabaseService.updateProductStock(entry.product_id, newStock);
+        
+        setProducts(prev => prev.map(p =>
+          p.id === entry.product_id ? { ...p, stock: newStock } : p
+        ));
+      }
+
+      setStockEntries(prev => prev.filter(se => se.id !== id));
+    } catch (err) {
+      throw err;
+    }
   };
 
   // Sales
-  const addsale = (saleData: Omit<Sale, 'id' | 'createdAt' | 'totalRevenue' | 'profit'>) => {
-    const product = products.find(p => p.id === saleData.productId);
-    if (!product || product.stock < saleData.quantity) {
-      throw new Error('Insufficient stock');
+  const addsale = async (saleData: Omit<Sale, 'id' | 'created_at'>) => {
+    try {
+      const product = products.find(p => p.id === saleData.product_id);
+      if (!product || product.stock < saleData.quantity) {
+        throw new Error('Insufficient stock');
+      }
+
+      const totalRevenue = saleData.quantity * saleData.selling_price;
+      const purchasePrice = product.purchase_price || 0;
+      const profit = saleData.quantity * (saleData.selling_price - purchasePrice);
+
+      const newSale = await supabaseService.createSale({
+        ...saleData,
+        total_revenue: totalRevenue,
+        profit: profit
+      });
+
+      // Update product stock
+      const newStock = product.stock - saleData.quantity;
+      await supabaseService.updateProductStock(saleData.product_id, newStock);
+      
+      setProducts(prev => prev.map(p =>
+        p.id === saleData.product_id ? { ...p, stock: newStock } : p
+      ));
+
+      setSales(prev => [...prev, newSale]);
+    } catch (err) {
+      throw err;
     }
-
-    const totalRevenue = saleData.quantity * saleData.sellingPrice;
-    const profit = saleData.quantity * (saleData.sellingPrice - saleData.purchasePrice);
-
-    const newSale: Sale = {
-      ...saleData,
-      id: generateId(),
-      totalRevenue,
-      profit,
-      createdAt: new Date().toISOString(),
-    };
-
-    // Update product stock
-    const updatedProducts = products.map(p =>
-      p.id === saleData.productId
-        ? { ...p, stock: p.stock - saleData.quantity }
-        : p
-    );
-
-    const updatedSales = [...sales, newSale];
-
-    setProducts(updatedProducts);
-    setSales(updatedSales);
-    storage.saveProducts(updatedProducts);
-    storage.saveSales(updatedSales);
   };
 
-  const deletesale = (id: string) => {
-    const sale = sales.find(s => s.id === id);
-    if (!sale) return;
+  const deletesale = async (id: number) => {
+    try {
+      const sale = sales.find(s => s.id === id);
+      if (!sale) return;
 
-    // Restore stock to the related product
-    const updatedProducts = products.map(p =>
-      p.id === sale.productId ? { ...p, stock: p.stock + sale.quantity } : p
-    );
-    const updatedSales = sales.filter(s => s.id !== id);
+      await supabaseService.deleteSale(id);
 
-    setProducts(updatedProducts);
-    setSales(updatedSales);
-    storage.saveProducts(updatedProducts);
-    storage.saveSales(updatedSales);
+      // Restore stock to the related product
+      const product = products.find(p => p.id === sale.product_id);
+      if (product) {
+        const newStock = product.stock + sale.quantity;
+        await supabaseService.updateProductStock(sale.product_id, newStock);
+        
+        setProducts(prev => prev.map(p =>
+          p.id === sale.product_id ? { ...p, stock: newStock } : p
+        ));
+      }
+
+      setSales(prev => prev.filter(s => s.id !== id));
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const refreshData = async () => {
+    await loadData();
   };
 
   return (
@@ -250,6 +291,8 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
         stockEntries,
         sales,
         dashboardStats,
+        loading,
+        error,
         addproduct,
         updateproduct,
         deleteproduct,
@@ -260,6 +303,7 @@ export const InventoryProvider: React.FC<{ children: ReactNode }> = ({ children 
         deletestockentry,
         addsale,
         deletesale,
+        refreshData,
       }}
     >
       {children}

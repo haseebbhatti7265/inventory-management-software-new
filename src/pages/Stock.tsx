@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
 import { useInventory } from '../contexts/InventoryContext';
-import { Warehouse, Plus, Package, Trash2 } from 'lucide-react';
+import { Warehouse, Plus, Package, Trash2, AlertCircle } from 'lucide-react';
 import Modal from '../components/Modal';
 import SearchFilter from '../components/SearchFilter';
 
 const Stock: React.FC = () => {
-  const { products, categories, addstock, stockentries, deletestockentry } = useInventory();
+  const { 
+    products, 
+    categories, 
+    addstock, 
+    stockEntries, 
+    deletestockentry, 
+    loading, 
+    error 
+  } = useInventory();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -17,8 +26,8 @@ const Stock: React.FC = () => {
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || product.category === categoryFilter;
+                         (product.category_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !categoryFilter || product.category_name === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
@@ -26,7 +35,7 @@ const Stock: React.FC = () => {
     setFormData({ productId: '', quantity: '', purchasePrice: '' });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.productId || !formData.quantity || !formData.purchasePrice) {
@@ -35,10 +44,10 @@ const Stock: React.FC = () => {
     }
 
     try {
-      addstock({
-        productId: formData.productId,
+      await addstock({
+        product_id: parseInt(formData.productId),
         quantity: parseInt(formData.quantity),
-        purchasePrice: parseFloat(formData.purchasePrice),
+        purchase_price: parseFloat(formData.purchasePrice),
       });
 
       setIsModalOpen(false);
@@ -49,6 +58,37 @@ const Stock: React.FC = () => {
   };
 
   const categoryOptions = categories.map(cat => ({ value: cat.name, label: cat.name }));
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading stock data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
+          <h3 className="mt-4 text-lg font-medium text-gray-900">Error Loading Data</h3>
+          <p className="mt-2 text-sm text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -108,15 +148,15 @@ const Stock: React.FC = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.category}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.category_name || 'Unknown'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{product.stock} {product.unit}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {product.purchasePrice ? `Rs${product.purchasePrice.toFixed(2)}` : '-'}
+                      {product.purchase_price ? `Rs${product.purchase_price.toFixed(2)}` : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      Rs{product.price.toFixed(2)}
+                      Rs{product.selling_price.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -143,7 +183,7 @@ const Stock: React.FC = () => {
         )}
       </div>
 
-      {stockentries.length > 0 && (
+      {stockEntries.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mt-8">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-800">Recent Stock Entries</h2>
@@ -161,20 +201,24 @@ const Stock: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {stockentries.map(entry => {
-                  const product = products.find(p => p.id === entry.productId);
+                {stockEntries.map(entry => {
+                  const product = products.find(p => p.id === entry.product_id);
                   return (
                     <tr key={entry.id} className="hover:bg-gray-50 transition-colors duration-150">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product?.name || 'Unknown'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{entry.quantity} {product?.unit}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rs{entry.purchasePrice.toFixed(2)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rs{entry.totalCost.toFixed(2)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(entry.createdAt).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rs{entry.purchase_price.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rs{entry.total_cost.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(entry.created_at).toLocaleDateString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (window.confirm('Delete this stock entry? This will reduce product stock.')) {
-                              deletestockentry(entry.id);
+                              try {
+                                await deletestockentry(entry.id);
+                              } catch (error) {
+                                alert('Error deleting stock entry: ' + (error as Error).message);
+                              }
                             }
                           }}
                           className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors duration-150"
@@ -213,7 +257,7 @@ const Stock: React.FC = () => {
               <option value="">Choose a product</option>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
-                  {product.name} - {product.category}
+                  {product.name} - {product.category_name || 'Unknown'}
                 </option>
               ))}
             </select>
@@ -240,12 +284,12 @@ const Stock: React.FC = () => {
             </label>
             <input
               type="number"
-              step="1"
+              step="0.01"
               min="0"
               value={formData.purchasePrice}
               onChange={(e) => setFormData(prev => ({ ...prev, purchasePrice: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="0"
+              placeholder="0.00"
               required
             />
           </div>

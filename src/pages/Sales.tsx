@@ -5,7 +5,7 @@ import Modal from '../components/Modal';
 import SearchFilter from '../components/SearchFilter';
 
 const Sales: React.FC = () => {
-  const { products, categories, sales, addsale, deletesale } = useInventory();
+  const { products, categories, sales, addsale, deletesale, loading, error } = useInventory();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -16,10 +16,10 @@ const Sales: React.FC = () => {
   });
 
   const filteredSales = sales.filter(sale => {
-    const product = products.find(p => p.id === sale.productId);
-    const matchesSearch = sale.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (product && product.category.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = !categoryFilter || (product && product.category === categoryFilter);
+    const product = products.find(p => p.id === sale.product_id);
+    const matchesSearch = (product && product.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (product && (product.category_name || '').toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCategory = !categoryFilter || (product && product.category_name === categoryFilter);
     return matchesSearch && matchesCategory;
   });
 
@@ -27,7 +27,7 @@ const Sales: React.FC = () => {
     setFormData({ productId: '', quantity: '', sellingPrice: '' });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.productId || !formData.quantity || !formData.sellingPrice) {
@@ -35,7 +35,7 @@ const Sales: React.FC = () => {
       return;
     }
 
-    const product = products.find(p => p.id === formData.productId);
+    const product = products.find(p => p.id === parseInt(formData.productId));
     if (!product) {
       alert('Product not found');
       return;
@@ -47,12 +47,10 @@ const Sales: React.FC = () => {
     }
 
     try {
-      addsale({
-        productId: formData.productId,
-        productName: product.name,
+      await addsale({
+        product_id: parseInt(formData.productId),
         quantity: parseInt(formData.quantity),
-        sellingPrice: parseFloat(formData.sellingPrice),
-        purchasePrice: product.purchasePrice || 0,
+        selling_price: parseFloat(formData.sellingPrice),
       });
 
       setIsModalOpen(false);
@@ -64,7 +62,38 @@ const Sales: React.FC = () => {
 
   const categoryOptions = categories.map(cat => ({ value: cat.name, label: cat.name }));
   const availableProducts = products.filter(product => product.stock > 0);
-  const selectedProduct = products.find(p => p.id === formData.productId);
+  const selectedProduct = products.find(p => p.id === parseInt(formData.productId));
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading sales data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">Error Loading Sales</h3>
+          <p className="mt-2 text-sm text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -101,6 +130,7 @@ const Sales: React.FC = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Selling Price</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Revenue</th>
@@ -110,64 +140,58 @@ const Sales: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredSales.map((sale) => (
-                  <tr key={sale.id} className="hover:bg-gray-50 transition-colors duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
-                            <ShoppingCart className="h-5 w-5 text-orange-600" />
+                {filteredSales.map((sale) => {
+                  const product = products.find(p => p.id === sale.product_id);
+                  return (
+                    <tr key={sale.id} className="hover:bg-gray-50 transition-colors duration-150">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                              <ShoppingCart className="h-5 w-5 text-orange-600" />
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{product?.name || 'Unknown Product'}</div>
+                            <div className="text-sm text-gray-500">{product?.unit}</div>
                           </div>
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{sale.productName}</div>
-                          <div className="text-sm text-gray-500">
-                            {products.find(p => p.id === sale.productId)?.category}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {sale.quantity} {products.find(p => p.id === sale.productId)?.unit}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      Rs{sale.sellingPrice.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                      Rs{sale.totalRevenue.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-sm font-medium Rs{
-                        sale.profit > 0 ? 'text-green-600' : sale.profit < 0 ? 'text-red-600' : 'text-gray-600'
-                      }`}>
-                        Rs{sale.profit.toFixed(2)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(sale.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => {
-                          if (window.confirm('Delete this sale record? This will restore stock.')) {
-                            deletesale(sale.id);
-                          }
-                        }}
-                        className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors duration-150"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product?.category_name || 'Unknown'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.quantity} {product?.unit}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rs{sale.selling_price.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">Rs{sale.total_revenue.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">Rs{sale.profit.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(sale.created_at).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={async () => {
+                            if (window.confirm('Delete this sale? This will restore the product stock.')) {
+                              try {
+                                await deletesale(sale.id);
+                              } catch (error) {
+                                alert('Error deleting sale: ' + (error as Error).message);
+                              }
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors duration-150"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         ) : (
           <div className="text-center py-12">
             <ShoppingCart className="mx-auto h-12 w-12 text-gray-300" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No sales recorded</h3>
-            <p className="mt-1 text-sm text-gray-500">Start recording sales to track your revenue.</p>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No sales found</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {searchTerm ? 'Try adjusting your search terms.' : 'Record your first sale to get started.'}
+            </p>
           </div>
         )}
       </div>
@@ -187,25 +211,19 @@ const Sales: React.FC = () => {
             </label>
             <select
               value={formData.productId}
-              onChange={(e) => {
-                const product = products.find(p => p.id === e.target.value);
-                setFormData(prev => ({ 
-                  ...prev, 
-                  productId: e.target.value,
-                  sellingPrice: product ? product.price.toString() : ''
-                }));
-              }}
+              onChange={(e) => setFormData(prev => ({ ...prev, productId: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               required
             >
               <option value="">Choose a product</option>
               {availableProducts.map((product) => (
                 <option key={product.id} value={product.id}>
-                  {product.name} - Stock: {product.stock} {product.unit}
+                  {product.name} - {product.category_name || 'Unknown'} (Stock: {product.stock} {product.unit})
                 </option>
               ))}
             </select>
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Quantity *
@@ -213,25 +231,50 @@ const Sales: React.FC = () => {
             <input
               type="number"
               min="1"
+              max={selectedProduct?.stock || 1}
               value={formData.quantity}
               onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              placeholder="Enter quantity"
               required
             />
+            {selectedProduct && (
+              <p className="text-xs text-gray-500 mt-1">
+                Available stock: {selectedProduct.stock} {selectedProduct.unit}
+              </p>
+            )}
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Selling Price *
+              Selling Price (per unit) *
             </label>
             <input
               type="number"
               step="0.01"
+              min="0"
               value={formData.sellingPrice}
               onChange={(e) => setFormData(prev => ({ ...prev, sellingPrice: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              placeholder="0.00"
               required
             />
           </div>
+
+          {formData.quantity && formData.sellingPrice && selectedProduct && (
+            <div className="bg-gray-50 p-3 rounded-md space-y-2">
+              <p className="text-sm text-gray-600">
+                <strong>Total Revenue:</strong> Rs{(parseFloat(formData.quantity) * parseFloat(formData.sellingPrice)).toFixed(2)}
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>Purchase Price:</strong> Rs{(selectedProduct.purchase_price || 0).toFixed(2)} per unit
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>Estimated Profit:</strong> Rs{(parseFloat(formData.quantity) * (parseFloat(formData.sellingPrice) - (selectedProduct.purchase_price || 0))).toFixed(2)}
+              </p>
+            </div>
+          )}
+
           <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"
